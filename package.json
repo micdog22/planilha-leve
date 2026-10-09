@@ -1,0 +1,11 @@
+{
+  "name": "planilha-leve",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Planilha no navegador com fórmulas em português no padrão do Excel, grafo de dependências, recálculo topológico e CSV com ponto e vírgula.",
+  "type": "module",
+  "scripts": { "test": "node --test" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/micdog22/planilha-leve.git" },
+  "homepage": "https://micdog22.github.io/planilha-leve/"
+}

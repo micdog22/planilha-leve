@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planilha Leve: fórmulas em português no navegador</title>
+  <meta name="description" content="Planilha que roda no navegador com fórmulas no padrão do Excel em português: SOMA, MÉDIA, SE, PROCV, CONT.SE e outras, com recálculo automático, formatos R$ e CSV.">
+  <meta name="theme-color" content="#15803d">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Planilha Leve</h1>
+    <p class="lead">Planilha no navegador com fórmulas em português, do jeito do Excel: <code>=SOMA(A1:A10)</code>, <code>=SE(B2&gt;0;"ok";"atenção")</code>, <code>=PROCV(...)</code>.</p>
+  </header>
+
+  <main>
+    <div class="toolbar" role="toolbar" aria-label="Ações da planilha">
+      <div class="group" role="group" aria-label="Histórico">
+        <button type="button" class="btn" id="btn-undo" title="Desfazer (Ctrl+Z)">Desfazer</button>
+        <button type="button" class="btn" id="btn-redo" title="Refazer (Ctrl+Y)">Refazer</button>
+      </div>
+      <div class="group" role="group" aria-label="Formato dos números">
+        <button type="button" class="btn" data-format="geral" title="Formato Geral">Geral</button>
+        <button type="button" class="btn" data-format="numero" title="Número com separador de milhar">Número</button>
+        <button type="button" class="btn" data-format="moeda" title="Moeda (R$)">R$</button>
+        <button type="button" class="btn" data-format="porcentagem" title="Porcentagem">%</button>
+        <button type="button" class="btn" data-format="data" title="Data (dd/mm/aaaa)">Data</button>
+        <button type="button" class="btn" data-decimals="-1" title="Diminuir casas decimais" aria-label="Diminuir casas decimais">,0</button>
+        <button type="button" class="btn" data-decimals="1" title="Aumentar casas decimais" aria-label="Aumentar casas decimais">,00</button>
+      </div>
+      <div class="group" role="group" aria-label="Edição">
+        <button type="button" class="btn" id="btn-fill-down" title="Preencher para baixo (Ctrl+D)">Preencher ↓</button>
+        <button type="button" class="btn" id="btn-fill-right" title="Preencher para a direita (Ctrl+R)">Preencher →</button>
+        <button type="button" class="btn" id="btn-clear" title="Limpar conteúdo e formato da seleção">Limpar</button>
+      </div>
+      <div class="group" role="group" aria-label="Arquivo">
+        <button type="button" class="btn" id="btn-import">Importar CSV</button>
+        <button type="button" class="btn" id="btn-export">Exportar CSV</button>
+        <label class="inline-field"><span class="visually-hidden">Conteúdo do CSV exportado</span>
+          <select id="csv-mode">
+            <option value="valores">com valores</option>
+            <option value="formulas">com fórmulas</option>
+          </select>
+        </label>
+        <input type="file" id="file-input" accept=".csv,.txt,text/csv,text/plain" hidden>
+      </div>
+      <div class="group" role="group" aria-label="Planilha">
+        <button type="button" class="btn" id="btn-add-rows">+50 linhas</button>
+        <button type="button" class="btn" id="btn-add-cols">+5 colunas</button>
+        <button type="button" class="btn" id="btn-sample">Exemplo</button>
+        <button type="button" class="btn" id="btn-new">Nova</button>
+      </div>
+    </div>
+
+    <div class="formula-bar">
+      <label class="visually-hidden" for="name-box">Endereço da célula (digite um endereço e Enter para ir até ele)</label>
+      <input id="name-box" class="name-box" autocomplete="off" spellcheck="false" value="A1">
+      <span class="fx" aria-hidden="true">fx</span>
+      <label class="visually-hidden" for="formula-input">Conteúdo da célula ativa</label>
+      <input id="formula-input" class="formula-input" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="grid-wrap" id="grid-wrap">
+      <table class="grid" id="grid" role="grid" aria-label="Planilha" aria-describedby="grid-help" tabindex="0"></table>
+      <input id="cell-editor" class="cell-editor" autocomplete="off" spellcheck="false" aria-label="Editando célula" hidden>
+    </div>
+
+    <div class="statusbar">
+      <span id="status-cell" aria-live="polite"></span>
+      <span id="status-summary"></span>
+    </div>
+    <p class="message" id="message" role="status" aria-live="polite"></p>
+    <p class="muted small" id="grid-help">Use as setas para andar, Enter ou F2 para editar e Esc para cancelar. Comece uma fórmula com "=" e clique em células para inserir referências; F4 alterna o $.</p>
+
+    <section class="cards">
+      <details class="card" open>
+        <summary>Funções disponíveis</summary>
+        <p class="muted small">Argumentos separados por ponto e vírgula e vírgula como separador decimal. Os nomes funcionam com ou sem acento.</p>
+        <dl class="functions" id="function-list"></dl>
+      </details>
+      <details class="card">
+        <summary>Atalhos de teclado</summary>
+        <dl class="keys">
+          <dt><kbd>Setas</kbd>, <kbd>Tab</kbd></dt><dd>Andar pelas células (com <kbd>Shift</kbd>, seleciona)</dd>
+          <dt><kbd>Ctrl</kbd> + <kbd>Setas</kbd></dt><dd>Pular até a borda dos dados</dd>
+          <dt><kbd>Enter</kbd> ou <kbd>F2</kbd></dt><dd>Editar a célula; Enter de novo confirma e desce</dd>
+          <dt><kbd>Esc</kbd></dt><dd>Cancelar a edição</dd>
+          <dt><kbd>Delete</kbd></dt><dd>Apagar o conteúdo da seleção</dd>
+          <dt><kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></dt><dd>Copiar, recortar e colar (fórmulas ajustam as referências)</dd>
+          <dt><kbd>Ctrl</kbd> + <kbd>D</kbd> / <kbd>R</kbd></dt><dd>Preencher para baixo / para a direita</dd>
+          <dt><kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Y</kbd></dt><dd>Desfazer / refazer</dd>
+          <dt><kbd>F4</kbd></dt><dd>Durante a edição, alterna A1, $A$1, A$1 e $A1</dd>
+          <dt><kbd>Ctrl</kbd> + <kbd>Home</kbd></dt><dd>Ir para A1</dd>
+        </dl>
+        <p class="muted small">No Mac, use <kbd>Cmd</kbd> no lugar de <kbd>Ctrl</kbd>.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Tudo roda no seu navegador. Código aberto no <a href="https://github.com/micdog22/planilha-leve">GitHub</a> · Licença MIT</p>
+  </footer>
+</body>
+</html>
